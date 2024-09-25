@@ -1,29 +1,46 @@
+# CMakeLists.txt
+
 cmake_minimum_required(VERSION 3.10)
-project(RobotLibrary)
+project(RoboticsLibrary VERSION 1.0.0 LANGUAGES CXX)
 
+# Specify the C++ standard
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Include directories
+# Add include directories
 include_directories(include)
 
-# Source files
+# Add nlohmann/json
+# If using package manager
+find_package(nlohmann_json 3.2.0 REQUIRED)
+
+# Alternatively, if added manually
+# include_directories(include/RoboticsLibrary/external)
+
+# Gather all headers
+file(GLOB_RECURSE HEADERS "include/RoboticsLibrary/*.h")
+
+# Gather all source files
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
-# Create library
-add_library(RobotLibrary STATIC ${SOURCES})
+# Create the library
+add_library(RoboticsLibrary STATIC
+    ${HEADERS}
+    ${SOURCES}
+)
 
-# Google Test
+# Link libraries
+target_link_libraries(RoboticsLibrary PUBLIC nlohmann_json::nlohmann_json)
+
+# Specify include directories for the library target
+target_include_directories(RoboticsLibrary PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+
+# Enable testing and add subdirectories as needed
 enable_testing()
-find_package(GTest REQUIRED)
-include_directories(${GTEST_INCLUDE_DIRS})
+add_subdirectory(tests)
 
-# Add executable for tests
-add_executable(RobotLibraryTests tests/KinematicsTests.cpp)
-target_link_libraries(RobotLibraryTests RobotLibrary GTest::GTest GTest::Main)
-
-# Link math library if it's a separate library
-# target_link_libraries(RobotLibraryTests RobotLibrary MathLibrary)
-
-# Add tests
-add_test(NAME RobotLibraryTests COMMAND RobotLibraryTests)
-
+# Add examples if any
+add_subdirectory(examples)
